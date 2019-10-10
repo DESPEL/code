@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "**/*.exe": true,
+        "**/*.save-failed": true,
+        "**/*.o": true
+    }
+}
