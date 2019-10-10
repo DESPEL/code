@@ -7,6 +7,7 @@ struct Node {
     Node() {}
     Node(T d) { data = d; }
     T data;
+    Node<T> *parent = nullptr;
     Node<T> *lchild = nullptr;
     Node<T> *rchild = nullptr;
 };
@@ -18,12 +19,14 @@ class BST {
     void insertHelper(Node<T> *actual, Node<T> *newNode) {
         if (actual->data > newNode->data) {
             if (actual->lchild == nullptr) {
+                newNode->parent = actual;
                 actual->lchild = newNode;
                 return;
             }
             insertHelper(actual->lchild, newNode);
         } else {
             if (actual->rchild == nullptr) {
+                newNode->parent = actual;
                 actual->rchild = newNode;
                 return;
             }
@@ -63,13 +66,23 @@ class BST {
         cout << actual->data << endl;
     }
 
-    Node<T> *searchH(Node<T> *actual, T &val) {
+    Node<T> *recsearch(Node<T> *actual, T &val) {
         if (actual == nullptr || actual->data == val)
             return actual;
         if (val < actual->data)
             return searchH(actual->lchild, val);
         else
             return searchH(actual->rchild, val);
+    }
+
+    Node<T> *minimum(Node<T> *actual) {
+        while (actual->lchild != nullptr) actual = actual->lchild;
+        return actual;
+    }
+
+    Node<T> *maximum(Node<T> *actual) {
+        while (actual->rchild != nullptr) actual = actual->rchild;
+        return actual;
     }
 
 public:
@@ -91,6 +104,39 @@ public:
 
     void postorder() { postorderH(head); }
 
+    Node<T> *search(T &val) {
+        Node<T> *actual = head;
+        while (actual != nullptr && actual->data != val) {
+            if (val < actual->data)
+                actual = actual->lchild;
+            else
+                actual = actual->rchild;
+        }
+        return actual;
+    }
+
+    Node<T> *successor(Node<T> *actual) {
+        if (actual->rchild != nullptr)
+            return minimum(actual->rchild);
+        Node<T> *next = actual->parent;
+        while (next != nullptr && next->rchild == actual) {
+            actual = next;
+            next = next->parent;
+        }
+        return next;
+    }
+
+    Node<T> *predecessor(Node<T> *actual) {
+        if (actual->lchild != nullptr)
+            return maximum(actual->lchild);
+        Node<T> *next = actual->parent;
+        while (next != nullptr && next->lchild == actual) {
+            actual = next;
+            next = next->parent;
+        }
+        return next;
+    }
+
     bool recfind(T val) {
         if (searchH(head, val) == nullptr) {
             return false;
@@ -99,17 +145,15 @@ public:
     }
 
     bool find(T val) {
-        Node<T> *actual = head;
-        while (actual != nullptr) {
-            if (actual->data == val)
-                return true;
-            if (val < actual->data)
-                actual = actual->lchild;
-            else
-                actual = actual->rchild;
+        if (search(val) == nullptr) {
+            return false;
         }
-        return false;
+        return true;
     }
+
+    T min() { return minimum(head)->data; }
+
+    T max() { return maximum(head)->data; }
 };
 
 int main() {
@@ -120,5 +164,7 @@ int main() {
     a.insert(8);
     a.insert(6);
     a.insert(9);
-    cout << a.find(6);
+    int c = 3;
+    Node<int> *test = a.successor(a.search(c));
+    cout << ((test == nullptr) ? "max" : to_string(test->data));
 }
