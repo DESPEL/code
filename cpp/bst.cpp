@@ -122,5 +122,3 @@ int main() {
     a.insert(9);
     cout << a.find(6);
 }
-
-/// asdfasd
