@@ -85,6 +85,19 @@ class BST {
         return actual;
     }
 
+    void transplant(Node<T> *u, Node<T> *v) {
+        if (u->parent == nullptr) {
+            head = v;
+        } else if (u == u->parent->lchild) {
+            u->parent->lchild = v;
+        } else {
+            u->parent->rchild = v;
+        }
+        if (v != nullptr) {
+            v->parent = u->parent;
+        }
+    }
+
 public:
     void insert(int data) {
         if (head == nullptr) {
@@ -94,6 +107,31 @@ public:
         Node<T> *actual = head;
         Node<T> *newNode = new Node<T>(data);
         insertHelper(actual, newNode);
+    }
+
+    void remove(Node<T> *node) {
+        if (node->lchild == nullptr) {
+            Node<T> *rchild = node->rchild;
+            delete node;
+            node = rchild;
+            return;
+        }
+        if (node->rchild == nullptr) {
+            Node<T> *lchild = node->lchild;
+            delete node;
+            node = lchild;
+            return;
+        }
+        Node<T> *succsr = successor(node);
+        if (node != succsr->parent) {
+            transplant(succsr, succsr->rchild);
+            succsr->rchild = node->rchild;
+            succsr->rchild->parent = succsr;
+        }
+        transplant(node, succsr);
+        succsr->lchild = node->lchild;
+        succsr->lchild->parent = succsr;
+        delete node;
     }
 
     void preorder() { preorderH(head); }
@@ -164,7 +202,11 @@ int main() {
     a.insert(8);
     a.insert(6);
     a.insert(9);
-    int c = 3;
-    Node<int> *test = a.successor(a.search(c));
-    cout << ((test == nullptr) ? "max" : to_string(test->data));
+    a.inorder();
+    int b = 8;
+    a.remove(a.search(b));
+    cout << endl;
+    b = 5;
+    a.remove(a.search(b));
+    a.inorder();
 }
