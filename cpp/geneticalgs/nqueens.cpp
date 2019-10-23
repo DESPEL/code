@@ -27,7 +27,7 @@ void mutate(std::vector<coord> &individual) {
 float performance(int nqueens, vector<coord> &individual) {
     std::vector<vector<bool>> queens(nqueens,
                                      std::vector<bool>(nqueens, false));
-    int bad = 0;
+    int bad = 0;    
     for (coord &gene : individual) {
         queens[gene.x][gene.y] = true;
     }
@@ -65,6 +65,8 @@ float performance(int nqueens, vector<coord> &individual) {
     }
     return (nqueens - bad) / nqueens
 }
+
+//TODO: reproduce, derive population, generate individual, generate population, loop solver
 
 int main() {
     int boardSize;
