@@ -43,6 +43,7 @@ float performance(int nqueens, vector<coord> &individual) {
     for (coord &gene : individual) {
         queens[gene.x][gene.y] = true;
     }
+    // BUG DOWN HERE
     for (coord &gene : individual) {
         for (int i = 0; i < nqueens; i++) {
             if (queens[gene.x][i] && i != gene.x) {
