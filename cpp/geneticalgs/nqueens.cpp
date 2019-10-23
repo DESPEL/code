@@ -2,6 +2,7 @@
 #include <cmath>
 #include <ctime>
 #include <iostream>
+#include <map>
 #include <random>
 #include <vector>
 
@@ -26,14 +27,28 @@ coord generateGene(int nqueens) {
 
 std::vector<coord> generateIndividual(int nqueens) {
     std::vector<coord> individual(nqueens);
-    for_each(begin(individual), end(individual),
-             [&](coord &val) { val = generateGene(nqueens); });
+    for_each(begin(individual), end(individual), [&](coord &val) {
+        coord newGene = generateGene(nqueens);
+        while (
+            find_if(begin(individual), end(individual), [&newGene](coord &el) {
+                return el.x == newGene.x && el.y == newGene.y;
+            }) != end(individual)) {
+            newGene = generateGene(nqueens);
+        }
+        val = newGene;
+    });
     return individual;
 }
 
 void mutate(std::vector<coord> &individual) {
-    individual[random(0, individual.size() - 1)] =
-        generateGene(individual.size());
+    coord newGene = generateGene(individual.size());
+    while (find_if(begin(individual), end(individual), [&newGene](coord &el) {
+               return el.x == newGene.x && el.y == newGene.y;
+           }) != end(individual)) {
+        newGene = generateGene(individual.size());
+    }
+    int index = random(0, individual.size() - 1);
+    individual[index] = newGene;
 }
 
 float performance(int nqueens, vector<coord> &individual) {
@@ -43,7 +58,6 @@ float performance(int nqueens, vector<coord> &individual) {
     for (coord &gene : individual) {
         queens[gene.x][gene.y] = true;
     }
-    // BUG DOWN HERE
     for (coord &gene : individual) {
         for (int i = 0; i < nqueens; i++) {
             if (queens[gene.x][i] && i != gene.x) {
@@ -69,7 +83,6 @@ float performance(int nqueens, vector<coord> &individual) {
                 bad++;
                 break;
             }
-            // possible
             if (gene.x - i >= 0 && gene.y + i < nqueens &&
                 gene.x - i != gene.x && gene.y + i != gene.y &&
                 queens[gene.x - i][gene.y + i]) {
@@ -103,7 +116,15 @@ std::vector<coord> reproduce(std::vector<coord> &parent,
     int idx = random(0, parent.size() - 1);
     std::vector<coord> child;
     child.insert(begin(child), begin(parent), begin(parent) + idx);
-    child.insert(begin(child), begin(mother) + idx, end(mother));
+    for (int i = idx; i < mother.size(); i++) {
+        if(find_if(begin(child), end(child), [&i, &mother] (coord &val) {
+            return val.x == mother[i].x && val.y == mother[i].y;
+        }) != end(child)) {
+            child.push_back(mother[i]);
+        } else {
+            child.push_back(parent[i]);
+        }
+    }
     return child;
 }
 

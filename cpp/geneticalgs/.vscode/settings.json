@@ -44,6 +44,7 @@
         "ratio": "cpp",
         "ctime": "cpp",
         "numeric": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "unordered_map": "cpp"
     }
 }
