@@ -47,32 +47,40 @@ float performance(int nqueens, vector<coord> &individual) {
     for (coord &gene : individual) {
         for (int i = 0; i < nqueens; i++) {
             if (queens[gene.x][i] && i != gene.x) {
+                // std::cout << "1";
                 bad++;
                 break;
             }
             if (queens[i][gene.y] && i != gene.y) {
+                // std::cout << "2";
                 bad++;
                 break;
             }
-            if (gene.x + i < nqueens && gene.x + i != gene.x &&
-                gene.y - i != gene.y && gene.y + i < nqueens &&
+            if (gene.x + i < nqueens && gene.y + i < nqueens &&
+                gene.x + i != gene.x && gene.y + i != gene.y &&
                 queens[gene.x + i][gene.y + i]) {
+                // std::cout << "3";
                 bad++;
                 break;
             }
-            if (gene.x - i >= 0 && gene.x - i != gene.x &&
-                gene.y - i != gene.y && gene.y - i >= 0 &&
-                queens[gene.x - i][gene.y - i]) {
+            if (gene.x - i >= 0 && gene.y - i >= 0 && gene.x - i != gene.x &&
+                gene.y - i != gene.y && queens[gene.x - i][gene.y - i]) {
+                // std::cout << "4";
                 bad++;
                 break;
             }
+            // possible
             if (gene.x - i >= 0 && gene.y + i < nqueens &&
+                gene.x - i != gene.x && gene.y + i != gene.y &&
                 queens[gene.x - i][gene.y + i]) {
+                // std::cout << "5";
                 bad++;
                 break;
             }
             if (gene.x + i < nqueens && gene.y - i >= 0 &&
+                gene.x + i != gene.x && gene.y - i != gene.y &&
                 queens[gene.x + i][gene.y - i]) {
+                // std::cout << "6";
                 bad++;
                 break;
             }
@@ -155,5 +163,17 @@ int main() {
     while (performance(boardSize, reinas[0]) != 1) {
         std::cout << performance(boardSize, reinas[0]) << '\n';
         reinas = derivePopulation(reinas);
+    }
+    std::vector<std::vector<bool>> mapa(boardSize,
+                                        std::vector<bool>(boardSize, false));
+    for (coord &pos : reinas[0]) {
+        std::cout << "x: " << pos.x << "y: " << pos.y << '\n';
+        mapa[pos.x][pos.y] = true;
+    }
+    for (int i = 0; i < boardSize; i++) {
+        for (int j = 0; j < boardSize; j++) {
+            std::cout << mapa[i][j] << ' ';
+        }
+        std::cout << '\n';
     }
 }
