@@ -1,4 +1,4 @@
-// Genetic algorithm implementation
+// Genetic algorithm implementation -- NO
 #include <cmath>
 #include <ctime>
 #include <iostream>
@@ -8,16 +8,27 @@
 
 using namespace std;
 
-const float mutationRatio = 0.10;
-const float preserveBest = 0.50;
-const float preverveRandom = 0.30;
-const int popSize = 50;
+const float mutationRatio = 0.05;
+const float preserveBest = 0.70;
+const float preverveRandom = 0.20;
+const int popSize = 20;
 
 struct coord {
     coord(int px, int py) { x = px, y = py; }
     coord() {}
     int x, y;
 };
+
+bool findRep(std::vector<coord> &ind) {
+    for (int i = 0; i < ind.size(); i++) {
+        for (int j = i + 1; j < ind.size(); j++) {
+            if (ind[i].x == ind[j].x && ind[i].y == ind[j].y) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 int random(int min, int max) { return min + (rand() % (max - min + 1)); }
 
@@ -26,21 +37,23 @@ coord generateGene(int nqueens) {
 }
 
 std::vector<coord> generateIndividual(int nqueens) {
-    std::vector<coord> individual(nqueens);
-    for_each(begin(individual), end(individual), [&](coord &val) {
+    // std::cout << "gi";
+    std::vector<coord> individual;
+    for (int i = 0; i < nqueens; i++) {
         coord newGene = generateGene(nqueens);
-        while (
-            find_if(begin(individual), end(individual), [&newGene](coord &el) {
-                return el.x == newGene.x && el.y == newGene.y;
-            }) != end(individual)) {
+        while (find_if(begin(individual), end(individual), [&](coord &val) {
+                   return val.x == newGene.x && val.y == newGene.y;
+               }) != end(individual)) {
             newGene = generateGene(nqueens);
         }
-        val = newGene;
-    });
+        individual.push_back(newGene);
+    }
+    // std::cout << findRep(individual) << '\n';
     return individual;
 }
 
 void mutate(std::vector<coord> &individual) {
+    // std::cout << "mut";
     coord newGene = generateGene(individual.size());
     while (find_if(begin(individual), end(individual), [&newGene](coord &el) {
                return el.x == newGene.x && el.y == newGene.y;
@@ -49,6 +62,7 @@ void mutate(std::vector<coord> &individual) {
     }
     int index = random(0, individual.size() - 1);
     individual[index] = newGene;
+    // std::cout << findRep(individual) << '\n';
 }
 
 float performance(int nqueens, vector<coord> &individual) {
@@ -113,18 +127,27 @@ std::vector<std::vector<coord>> generatePopulation(int size, int boardSize) {
 
 std::vector<coord> reproduce(std::vector<coord> &parent,
                              std::vector<coord> &mother) {
+    // std::cout << "rep";
+    // std::cout << findRep(parent) << findRep(mother);
     int idx = random(0, parent.size() - 1);
     std::vector<coord> child;
     child.insert(begin(child), begin(parent), begin(parent) + idx);
     for (int i = idx; i < mother.size(); i++) {
-        if(find_if(begin(child), end(child), [&i, &mother] (coord &val) {
-            return val.x == mother[i].x && val.y == mother[i].y;
-        }) != end(child)) {
+        if (find_if(begin(child), end(child), [&i, &mother](coord &val) {
+                return val.x == mother[i].x && val.y == mother[i].y;
+            }) == end(child)) {
             child.push_back(mother[i]);
         } else {
-            child.push_back(parent[i]);
+            coord ncoord = generateGene(parent.size());
+            while (find_if(begin(child), end(child), [&ncoord](coord &val) {
+                       return val.x == ncoord.x && val.y == ncoord.y;
+                   }) != end(child)) {
+                ncoord = generateGene(parent.size());
+            }
+            child.push_back(ncoord);
         }
     }
+    // std::cout << findRep(child) << '\n';
     return child;
 }
 
@@ -166,7 +189,11 @@ std::vector<std::vector<coord>> derivePopulation(
     while (result.size() < parent.size()) {
         int idx1 = random(0, result.size() - 1);
         int idx2 = random(0, result.size() - 1);
-        result.push_back(reproduce(result[idx1], result[idx2]));
+        if (random(0, 100) < 80) {
+            result.push_back(reproduce(result[idx1], result[idx2]));
+        } else {
+            result.push_back(generateIndividual(parent[0].size()));
+        }
     }
 
     for (int i = 0; i < result.size(); i++) {
@@ -175,15 +202,29 @@ std::vector<std::vector<coord>> derivePopulation(
     }
     return result;
 }
-// loop solver
 
+float avgPerf(std::vector<std::vector<coord>> &population) {
+    float total = 0;
+    for (std::vector<coord> &individual : population) {
+        total += performance(individual.size(), individual);
+    }
+    return total / population.size();
+}
 int main() {
     int boardSize;
     std::cin >> boardSize;
     std::vector<vector<coord>> reinas = generatePopulation(popSize, boardSize);
+    long long int it = 0;
     while (performance(boardSize, reinas[0]) != 1) {
-        std::cout << performance(boardSize, reinas[0]) << '\n';
+        // std::cout << avgPerf(reinas) << '\n';
+        if (it % 1000 == 0) {
+            for (coord &pos : reinas[0]) {
+                std::cout << pos.x << " " << pos.y << "|";
+            }
+            std::cout << performance(boardSize, reinas[0]) << '\n';
+        }
         reinas = derivePopulation(reinas);
+        ++it;
     }
     std::vector<std::vector<bool>> mapa(boardSize,
                                         std::vector<bool>(boardSize, false));
