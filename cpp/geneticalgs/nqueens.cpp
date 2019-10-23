@@ -7,6 +7,10 @@
 
 using namespace std;
 
+float mutationRatio = 0.10;
+float preserveBest = 0.50;
+float preverveRandom = 0.30;
+
 struct coord {
     coord(int px, int py) { x = px, y = py; }
     coord() {}
@@ -79,10 +83,40 @@ std::vector<std::vector<coord>> generatePopulation(int size, int boardSize) {
              [&](std::vector<coord> &individual) {
                  individual = generateIndividual(boardSize);
              });
-    
+    return population;
 }
 
-// TODO: reproduce, derive population, generate individual, generate population,
+std::vector<std::vector<coord>> derivePopulation(
+    std::vector<std::vector<coord>> &parent) {
+    struct association {
+        int idx;
+        float performance;
+    };
+    std::vector<association> performances(parent.size());
+    int idx = 0;
+    float (*perffnc)(int, std::vector<coord> &) = performance;
+    for_each(begin(performances), end(performances),
+             [&idx, &parent, &perffnc](association &val) {
+                 val.idx = idx;
+                 val.performance = perffnc(parent[idx].size(), parent[idx]);
+                 idx++;
+             });
+    sort(begin(performances), end(performances),
+         [](const association &v1, const association &v2) {
+             return v1.performance > v2.performance;
+         });
+
+    std::vector<std::vector<coord>> result;
+    std::vector<bool> selected(derivePopulation.size());
+    for (int i = 0; i < derivePopulation.size() * preserveBest; i++) {
+        result.push_back(parent[performances[i].idx]);
+    }
+    for (int i = 0; i < derivePopulation.size() * preverveRandom; i++) {
+
+    }
+}
+
+// TODO: reproduce, derive population
 // loop solver
 
 int main() {
