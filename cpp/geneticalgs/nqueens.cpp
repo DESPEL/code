@@ -54,13 +54,23 @@ std::vector<coord> generateIndividual(int nqueens) {
 
 void mutate(std::vector<coord> &individual) {
     // std::cout << "mut";
-    coord newGene = generateGene(individual.size());
+    int index = random(0, individual.size() - 1);
+    coord newGene = individual[index];
+    if (random(0, 100) < 50) {
+        newGene.x = random(0, individual.size() - 1);
+    } else {
+        newGene.y = random(0, individual.size() - 1);
+    }
     while (find_if(begin(individual), end(individual), [&newGene](coord &el) {
                return el.x == newGene.x && el.y == newGene.y;
            }) != end(individual)) {
-        newGene = generateGene(individual.size());
+        newGene = individual[index];
+        if (random(0, 100) < 50) {
+            newGene.x = random(0, individual.size() - 1);
+        } else {
+            newGene.y = random(0, individual.size() - 1);
+        }
     }
-    int index = random(0, individual.size() - 1);
     individual[index] = newGene;
     // std::cout << findRep(individual) << '\n';
 }
