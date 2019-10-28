@@ -12,6 +12,10 @@
         "list": "cpp",
         "xhash": "cpp",
         "xtree": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "queue": "cpp",
+        "stack": "cpp",
+        "deque": "cpp",
+        "cmath": "cpp"
     }
 }
