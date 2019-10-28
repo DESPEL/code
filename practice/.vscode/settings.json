@@ -8,6 +8,10 @@
         "algorithm": "cpp",
         "limits": "cpp",
         "map": "cpp",
-        "unordered_map": "cpp"
+        "unordered_map": "cpp",
+        "list": "cpp",
+        "xhash": "cpp",
+        "xtree": "cpp",
+        "utility": "cpp"
     }
 }
