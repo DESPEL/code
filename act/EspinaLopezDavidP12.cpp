@@ -3,19 +3,19 @@
 #include <iostream>
 #include <thread>
 
+// Angles measured in gradians
 template <typename T>
 struct Vector2D {
     bool pol;
     T x, y;
-    T magn, deg;  // Los grados van en radianes
+    T magn, deg;
     Vector2D() {}
     Vector2D(T px, T py, bool p = false) {
         pol = p;
-        if (p) {
+        if (p)
             magn = px, deg = py;
-        } else {
+        else
             x = px, y = py;
-        }
     }
 
     Vector2D<T> suma(Vector2D<T> sec) {
@@ -59,12 +59,12 @@ struct Temporizador {
             std::chrono::system_clock::now();
         std::chrono::time_point<std::chrono::system_clock> fin =
             inicio + std::chrono::seconds(s);
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        std::this_thread::sleep_for(std::chrono::milliseconds(250)); // To show start at 10
         while (std::chrono::system_clock::now() < fin) {
             int actual = std::chrono::duration_cast<std::chrono::seconds>(
                              fin - std::chrono::system_clock::now())
                              .count() +
-                         1;
+                         1; // Offset for counting from 10 to 0, 1 second added
             if (last != actual) {
                 system("cls");
                 std::cout << ((actual / 60 < 10) ? "0" : "") << actual / 60
@@ -73,13 +73,13 @@ struct Temporizador {
             }
             last = actual;
             std::this_thread::sleep_for(std::chrono::seconds(
-                1));  // Evitar utilizar recursos mientras se espera
-        }
-        std::cout << "00:00\n";
+                1));  // Avoid wasting resources
+        } // The counter ends at 00:01
+        std::cout << "00:00\n"; 
     }
 };
 
-// Más del 90% del main es para imprimir mensajes
+// A ton of couts for testing the structures
 int main() {
     int pos, t;
     float t1, t2;
