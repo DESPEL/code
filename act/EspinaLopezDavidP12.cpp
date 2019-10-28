@@ -9,7 +9,7 @@ struct Vector2D {
     T x, y;
     T magn, deg;  // Los grados van en radianes
     Vector2D() {}
-    Vector2D(T px, T py, bool p = false) {
+    Vector2D(T&& px, T&& py, bool p = false) {
         pol = p;
         if (p) {
             magn = px, deg = py;
