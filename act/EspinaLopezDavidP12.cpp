@@ -47,6 +47,17 @@ struct Vector2D {
         T py = sin(deg) * magn;
         return Vector2D<T>(px, py);
     }
+
+    Vector2D<T> operator+(Vector2D<T> v2) {
+        return suma(v2);
+    }
+
+    ostream &operator <<(ostream &out) {
+        if (polar) 
+            return out << "m: " << magn << " a: " << deg << '\n';
+        else 
+            return out << "x: " << x << " y: " << y << '\n';
+    }
 };
 
 struct Temporizador {

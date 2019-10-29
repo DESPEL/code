@@ -16,6 +16,8 @@
         "queue": "cpp",
         "stack": "cpp",
         "deque": "cpp",
-        "cmath": "cpp"
+        "cmath": "cpp",
+        "iostream": "cpp",
+        "chrono": "cpp"
     }
 }
