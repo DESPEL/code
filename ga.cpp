@@ -8,11 +8,12 @@
 using namespace std;
 
 float preserveB = 0.3;
-float preserveR = 0.1;
+float preserveR = 0.2;
 float mutationR = 0.02;
-int conv = 3;
+int tests = 200; // entre más tests, mejores resultados
+int pbsz = 20;
 
-float f(float x) { return x * x; }
+float f(float x) { return (x) * (x); }
 
 bool random() { return rand() % 2; }
 
@@ -60,7 +61,7 @@ void mutar(vector<bool> &individuo) {
 
 float fitness(vector<bool> individuo) { return abs(f(evaluar(individuo))); }
 
-vector<bool> cruce(vector<bool> i1, vector<bool> i2) {
+vector<bool> cruce_(vector<bool> i1, vector<bool> i2) {
     int idx = random(0, i1.size() - 1);
     vector<bool> hijo;
     for (int i = 0; i < idx; i++) {
@@ -72,12 +73,33 @@ vector<bool> cruce(vector<bool> i1, vector<bool> i2) {
     return hijo;
 }
 
+vector<bool> cruce__(vector<bool> i1, vector<bool> i2) {
+    //int idx = random(0, i1.size() - 1);
+    vector<bool> hijo;
+    for (int i = 0; i < i2.size(); i++) {
+        hijo.push_back(i2[i] && i1[i]);
+    }
+    return hijo;
+}
+
+vector<bool> cruce(vector<bool> i1, vector<bool> i2) {
+    int idx = random(0, i1.size() - 1);
+    vector<bool> hijo;
+    for (int i = 0; i < idx; i++) {
+        hijo.push_back(i1[i]);
+    }
+    for (int i = idx; i < i2.size(); i++) {
+        hijo.push_back(i2[i] && i1[i]);
+    }
+    return hijo;
+}
+
 struct fitidx {
     fitidx() {}
     int idx;
     float fitness;
 
-    bool operator<(fitidx a2) { return fitness < a2.fitness; }
+    bool operator<(const fitidx &a2) { return fitness < a2.fitness; }
 };
 
 vector<vector<bool>> seleccion(vector<vector<bool>> pob) {
@@ -103,7 +125,7 @@ vector<vector<bool>> seleccion(vector<vector<bool>> pob) {
     }
     int i = 0;
     while (res.size() < pob.size()) {
-        int idx2 = random(0, res.size() - 1);
+        int idx2 = random(0, (res.size() - 1));
         res.push_back(cruce(res[i], res[idx2]));
         i++;
     }
@@ -137,19 +159,28 @@ float mfitness(vector<vector<bool>> pob) {
 }
 
 int main() {
+    vector<bool> min;
+    int pmin = 99999999;
+    int it = 0;
     srand(time(NULL));
-    vector<vector<bool>> pob = generarpob();
-    int c = 0;
-    do {
-        pob = seleccion(pob);
-        if (pfitness(pob) <= fitness(pob[0])) {
-            c++;
-        } else 
-            c = 0;
-    } while (pfitness(pob) > fitness(pob[0]) && c < conv); // evaluar convergencia
-    cout << "Cromosoma resultante: " << '\n';
-    for (int i = 0; i < pob[0].size(); ++i) {
-        cout << pob[0][i] << ' ';
+    for (int i = 0; i < tests; i++) {
+        vector<vector<bool>> pob = generarpob(pbsz);
+        do {
+            it++;
+            pob = seleccion(pob);
+        } while (pfitness(pob) > fitness(pob[0]));  // evaluar convergencia
+        if (fitness(pob[0]) < pmin) { // Se toma al mejor individuo de la convergencia (heurística para intentar asegurar mínimo global)
+                                      // compensa la baja cantidad de genes
+            pmin = fitness(pob[0]);
+            min = pob[0];
+        }
     }
-    cout << '\n' << "Valor para x: " << fitness(pob[0]);
+
+    cout << "Cromosoma resultante: " << '\n';
+    for (int i = 0; i < min.size(); ++i) {
+        cout << min[i] << ' ';
+    }
+    cout << '\n' << "Valor para x: " << evaluar(min);
+    cout << '\n' << "Iteraciones: " << it;
+    cout << '\n' << "Iteraciones(prom.): " << it / tests;
 }
