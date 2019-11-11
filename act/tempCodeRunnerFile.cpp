@@ -1,1 +1,3 @@
-std::cout << actual / 60 << ":" << actual % 60 << '\n';
+
+
+		delete[] temp;
