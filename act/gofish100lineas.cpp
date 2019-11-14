@@ -35,7 +35,7 @@ void mostrarCartas(vector<pair<int, int>>& j) {
 }
 int main() {
 	srand(time(NULL));
-	int n, imax = 0, vmax = 0, run = 1;
+	int n, imax = 0, vmax = 0, run = 1, p = 0;
 	vector<pair<int, int>> deck, pool;
 	vector<int> ganadores;
 	for (int i = 0; i < 4; i++)
@@ -60,13 +60,11 @@ int main() {
 		cout << "Turno del jugador " << i + 1 << '\n' << "Cartas: ";
 		mostrarCartas(jugadores[i]);
 		cout << '\n';
-		int p = 0;
 		if (pool.size() != 0) {
 			cout << "La carta del pool es: " << ((pool.back().first == 10) ? "10" : string(1, cs2[pool.back().first - 1])) << cs[pool.back().second] << '\n';
 			cout << "Ingrese 1 si desea una carta del pool" << '\n';
 			cin >> p;
-		} else 
-			cout << "Como no habian cartas en el pool, se le dio una del deck" << '\n';
+		} else cout << "Como no habian cartas en el pool, se le dio una del deck" << '\n';
 		if (p == 1) jugadores[i].push_back(take(pool));
 		else jugadores[i].push_back(take(deck));
 		system("cls");
@@ -92,9 +90,8 @@ int main() {
 		jugadores[i].erase(jugadores[i].begin() + p - 1);
 	}
 	system("cls");
-	for (int i = 0; i < jugadores.size(); i++) {
-		auto l = [&](int a, pair<int, int> b) {return a + b.first; };
-		int suma = accumulate(begin(jugadores[i]), end(jugadores[i]), 0 , l);
-	}
+	for (int i = 0; i < jugadores.size(); i++)
+		int suma = accumulate(begin(jugadores[i]), end(jugadores[i]), 0 , [&](int a, pair<int, int> b) {return a + b.first; });
 	cout << "El jugador " << imax + 1<< " ha ganado" << '\n';
+    cin >> p;
 }
