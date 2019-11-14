@@ -9,9 +9,9 @@ using namespace std;
 
 int random(int min, int max) { return min + (rand() % (max - min + 1)); }
 string cs = "PCDT", cs2 = "A234567891JQK";
-void randomize(vector<pair<int,int>> &vals) {
+void randomize(vector<pair<int, int>>& vals) {
 	for (size_t i = 0; i < vals.size(); i++) {
-		pair<int,int> t = vals[i];
+		pair<int, int> t = vals[i];
 		int idx = random(0, vals.size() - 1);
 		vals[i] = vals[idx], vals[idx] = t;
 	}
@@ -25,7 +25,7 @@ int contar(const vector<pair<int, int>>& jugador) {
 		puntos[veces[i]]++;
 	return puntos[2] * 2 + puntos[3] * 3 + puntos[4] * 4;
 }
-pair<int,int> take(vector<pair<int, int>>& d) {
+pair<int, int> take(vector<pair<int, int>>& d) {
 	pair<int, int> t = d.back();
 	d.pop_back();
 	return t;
@@ -64,7 +64,8 @@ int main() {
 			cout << "La carta del pool es: " << ((pool.back().first == 10) ? "10" : string(1, cs2[pool.back().first - 1])) << cs[pool.back().second] << '\n';
 			cout << "Ingrese 1 si desea una carta del pool" << '\n';
 			cin >> p;
-		} else cout << "Como no habian cartas en el pool, se le dio una del deck" << '\n';
+		}
+		else cout << "Como no habian cartas en el pool, se le dio una del deck" << '\n';
 		if (p == 1) jugadores[i].push_back(take(pool));
 		else jugadores[i].push_back(take(deck));
 		system("cls");
@@ -90,8 +91,10 @@ int main() {
 		jugadores[i].erase(jugadores[i].begin() + p - 1);
 	}
 	system("cls");
-	for (int i = 0; i < jugadores.size(); i++)
-		int suma = accumulate(begin(jugadores[i]), end(jugadores[i]), 0 , [&](int a, pair<int, int> b) {return a + b.first; });
-	cout << "El jugador " << imax + 1<< " ha ganado" << '\n';
-    cin >> p;
+	for (int i = 0; i < jugadores.size(); i++) {
+		int suma = accumulate(begin(jugadores[i]), end(jugadores[i]), 0, [&](int a, pair<int, int> b) {return a + b.first; });
+		if (suma > vmax) vmax = suma, imax = i;
+	}
+	cout << "El jugador " << imax + 1 << " ha ganado" << '\n';
+	cin >> p;
 }
