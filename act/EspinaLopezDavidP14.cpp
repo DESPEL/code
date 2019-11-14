@@ -4,23 +4,27 @@
 #include <io.h>
 #include <chrono>
 #include <thread>
+#define pool stack<card> // simular objeto de pool
 
 using namespace std;
 
 wstring_view symbols[] = {L"♥", L"♦", L"♣", L"♠"};
 
+inline int random(int min, int max) {return min + (rand() % (max - min + 1));}
+
+// Permitir el output de los símbolos de las cartas
 template <typename T>
 void wprint(T str) {
-	_setmode(_fileno(stdout), 0x20000);
+	int t =_setmode(_fileno(stdout), 0x20000);
 	wcout << str;
-	_setmode(_fileno(stdout), 0x4000);
+	t = _setmode(_fileno(stdout), 0x4000);
 }
 
 template <typename T>
 struct node {
 	node() {}
 	node(T v) { val = v; }
-	T val;
+	T val = T();
 	node<T>* next = nullptr;
 	node<T>* prev = nullptr;
 };
@@ -30,16 +34,14 @@ struct stack {
 	stack() {}
 	node<T>* t = new node<T>();
 	int sz = 0;
+
 	void insert(T val) {
-		sz++;
 		node<T>* n = new node<T>(val);
-		n->next = t;
-		t = n;
+		n->next = t, t = n, sz++;
 	}
 
 	void pop() {
-		if (size() == 0)
-			throw underflow_error("Intento de borrado en stack vacio");
+		if (size() == 0) throw underflow_error("Intento de borrado en stack vacio");
 		node<T>* temp = t;
 		t = t->next;
 		delete temp;
@@ -47,8 +49,7 @@ struct stack {
 	}
 
 	T top() const {
-		if (size() == 0)
-			throw underflow_error("Intento de consulta en stack vacio");
+		if (size() == 0) throw underflow_error("Intento de consulta en stack vacio");
 		return t->val;
 	}
 
@@ -57,9 +58,7 @@ struct stack {
 
 template <typename T>
 struct circularList {
-	node<T>* head = nullptr;
-	node<T>* last = nullptr;
-	node<T>* act = nullptr;
+	node<T>* head = nullptr, *last = nullptr, *act = nullptr;
 	int sz = 0;
 	
 	void insert(T val) {
@@ -71,9 +70,7 @@ struct circularList {
 			act = head;
 		} else {
 			last->next = new node<T>(val);
-			last->next->prev = last;
-			last = last->next;
-			last->next = head;
+			last->next->prev = last, last = last->next, last->next = head;
 		}
 		sz++;
 	}
@@ -98,8 +95,7 @@ struct circularList {
 	}
 
 	T actual() const {
-		if (size() == 0)
-			throw underflow_error("Intento de consulta en lista circular vacia");
+		if (size() == 0) throw underflow_error("Intento de consulta en lista circular vacia");
 		return act->val;
 	}
 };
@@ -121,8 +117,7 @@ struct deck {
 	uniform_int_distribution<int> rng;
 
 	deck(int n = 1) {
-		random_device rd;
-		gen.seed(rd());
+		gen.seed(random_device()());
 		uniform_int_distribution<int> t(0, (52 * n) - 1);
 		rng = t;
 		nbarajas = n;
@@ -153,28 +148,16 @@ struct deck {
 	int size() { return cartas.size(); }
 };
 
-struct pool {
-	pool() {}
-	stack<card> cartas;
-
-	void insert(card val) { cartas.insert(val); }
-	card top() { return cartas.top(); }
-	void pop() { cartas.pop(); }
-	int size() { return cartas.size(); }
-};
-
 struct jugador {
 	bool comp;
 	card cartas[6];
 	string name;
 	int sz = 5;
-	jugador(string n ,bool c = false) {
-		name = n, comp = c;
-	}
+	jugador(string n, bool c = false) {name = n, comp = c;}
 
 	bool add(card carta) {
-		if (sz == 6)
-			return false;
+		if (sz == 6) return false;
+
 		cartas[5] = carta;
 		sz = 6;
 		return true;
@@ -212,12 +195,11 @@ struct jugador {
 				cons++;
 				if (cons > consmax) consmax = cons;
 				last = i;
-			}
-			else
+			} else
 				cons = 0;
 		}
 		if (consmax >= 5) return consmax;
-		return pares * 2 + triples * 2;
+		return pares * 2 + triples * 3;
 	}
 
 	int unused() {
@@ -226,10 +208,9 @@ struct jugador {
 			conteo[cartas[i].valor - 1].second++;
 			conteo[cartas[i].valor - 1].first = i;
 		}
-		for (int i = 0; i < 13; i++) {
+		for (int i = 0; i < 13; i++) 
 			if (conteo[i].second >= 1)
 				return conteo[i].first;
-		}
 		return -1;
 	}
 
@@ -244,14 +225,16 @@ struct jugador {
 
 struct juego {
 	circularList<jugador*> jugadores;
+	stack<jugador*> ganadores;
 	deck baraja;
 	pool p;
 
 	juego(int r, int c = 0, int n = 1) {
-		for (int i = 0; i < r; i++)
-			jugadores.insert(new jugador(to_string(i + 1)));
+		int d = 0;
+		for (int i = 0; i < r; i++) 
+			jugadores.insert(new jugador(to_string(++d)));
 		for (int i = 0; i < c; i++)
-			jugadores.insert(new jugador(to_string(i + 1), true));
+			jugadores.insert(new jugador(to_string(++d), true));
 		baraja = deck(n);
 		baraja.generate();
 	}
@@ -264,6 +247,39 @@ struct juego {
 			}
 			jugadores.next();
 		} while (jugadores.head->val != jugadores.actual());
+	}
+
+	void reshuffle() {
+		card* temp = new card[p.size()];
+		int tsz = p.size();
+		for (int i = 0; p.size() > 0; i++) {
+			temp[i] = p.top();
+			p.pop();
+		}
+		for (int i = 0; i < tsz; i++) {
+			int idx = random(0, tsz - 1);
+			card tval = temp[i];
+			temp[i] = temp[idx], temp[idx] = tval;
+		}
+		for (int i = 0; i < tsz; i++)
+			baraja.cartas.insert(temp[i]);
+	}
+
+	jugador* end() {
+		jugador* g = nullptr;
+		int vmax = 0;
+		while (ganadores.size() > 0) {
+			int suma = 0;
+			jugador* actual = ganadores.top();
+			ganadores.pop();
+			for (int i = 0; i < actual->size(); i++) 
+				suma += (actual->cartas[i].valor == 1)? 14 : actual->cartas[i].valor;
+			if (suma >= vmax) {
+				vmax = suma;
+				g = actual;
+			}
+		}
+		return g;
 	}
 
 };
@@ -286,15 +302,25 @@ void mostrarCartas(const jugador *j) {
 }
 
 void run() {
-	int n = 1, c = 0;
+	int n = 1, c = 0, nb = 1;
 	cout << "Bienvenido al juego de gofish" << '\n';
-	cout << "Ingrese la cantidad de jugadores (2 - 4)"<< '\n';
+	cout << "Ingrese la cantidad de jugadores (2 - n)"<< '\n';
+	cout << "Para jugar con mas de 6 jugadores se necesita que ingrese el numero de barajas" << '\n';
 	cin >> n;
-	while (n < 2 || n > 4) {
-		cout << "Ingrese un valor entre 2 y 4 inclusive" << '\n';
+	while (n < 2) {
+		cout << "Ingrese un valor mayor a 2" << '\n';
 		cin >> n;
 	}
-	cout << "Ingrese la cantidad de jugadores que manejara la computadora (0 - " << n - 1 << ")";
+	if (n > 6) {
+		cout << "Ingrese la cantidad de barajas (" << (n + n%6) / 6 << " - n)" << '\n';
+		cin >> nb;
+		while (nb < n / 6) {
+			cout << "Ingrese un valor mayor a " << (n+n%6) / 6 << '\n';
+			cin >> nb;
+		}
+	}
+
+	cout << "Ingrese la cantidad de jugadores que manejara la computadora (0 - " << n - 1 << ")" << '\n';
 	cin >> c;
 	while (c < 0 || c > n - 1) {
 		cout << "Ingrese un valor entre 0 y " << n - 1 << " inclusive" << '\n';
@@ -306,7 +332,7 @@ void run() {
 	this_thread::sleep_for(chrono::milliseconds(750));
 	system("cls");
 	
-	juego j(n - c, c);
+	juego j(n - c, c, nb);
 	j.repartir();
 	bool first = true;
 	jugador* ganador = nullptr;
@@ -320,7 +346,8 @@ void run() {
 
 			if (actual == ganador) {
 				cout << "La vuelta para ganar ha terminado " << '\n';
-				cout << "El jugador" << actual->name << " ha ganado" << '\n';
+				jugador* gr = j.end();
+				cout << "El jugador " << gr->name << " ha ganado" << '\n';
 				return;
 			}
 
@@ -336,7 +363,9 @@ void run() {
 					cin >> n;
 				} else if(!first) {
 					cout << "Como no habian mas cartas en el pool, se te dio una de la baraja" << '\n';
+					this_thread::sleep_for(chrono::milliseconds(500));
 				}
+				system("cls");
 				if (n == 1 && j.p.size() >= 1) {
 					actual->add(j.p.top());
 					j.p.pop();
@@ -344,8 +373,8 @@ void run() {
 					actual->add(j.baraja.top());
 					j.baraja.pop();
 				}
-				if (!first)
-					mostrarCartas(actual);
+				cout << "Cartas del jugador " << actual->name << '\n';
+				mostrarCartas(actual);
 				int maxjug = actual->contar();
 				cout << "Su mejor jugada es de " << maxjug << " cartas" << '\n';
 				if (maxjug == 6) {
@@ -354,8 +383,18 @@ void run() {
 					return;
 				}
 				if (maxjug == 5 && ganador == nullptr) {
-					cout << "El juego se acaba en la siguiente vuelta" << '\n';
-					ganador = actual;
+					int tmp;
+					cout << "Tiene una jugada de 5 cartas, ingrese 1 si desea bajar su jugada" << '\n';
+					cin >> tmp;
+					if (tmp == 1) {
+						cout << "El jugador " << actual->name << " ha bajado sus carats" << '\n';
+						cout << "El juego se acaba en la siguiente vuelta" << '\n';
+						ganador = actual;
+					}
+					j.ganadores.insert(actual);
+				} else if (maxjug == 5) {
+					cout << "Tienes una jugada de 5 cartas, automaticamente te bajas (ultima vuelta)" << '\n';
+					j.ganadores.insert(actual);
 				}
 				cout << "Elija una carta para dejar en el pool (1 - 6)" << '\n';
 				cin >> n;
@@ -372,11 +411,9 @@ void run() {
 				cout << "La computadora (jugador " << actual->name << ") esta tirando" << '\n';
 				bool fpool = (j.p.size() > 0) ? actual->pickpool(j.p.top().valor) : false;
 				if (fpool) {
-					actual->add(j.p.top());
-					j.p.pop();
+					actual->add(j.p.top()); j.p.pop();
 				} else {
-					actual->add(j.baraja.top());
-					j.baraja.pop();
+					actual->add(j.baraja.top()); j.baraja.pop();
 				}
 				int maxjug = actual->contar();
 				if (maxjug == 6) {
@@ -384,9 +421,14 @@ void run() {
 					cout << "El jugador " << actual->name << " ha ganado" << '\n';
 					return;
 				}
-				if (maxjug == 5) {
+				if (maxjug == 5 && ganador == nullptr) {
+					j.ganadores.insert(actual);
+					cout << "El jugador " << actual->name << " ha bajado sus cartas" << '\n';
 					cout << "El juego se acaba en la siguiente vuelta" << '\n';
 					ganador = actual;
+				} else if (maxjug == 5) {
+					cout << "Ha bajado " << actual->name << " sus cartas";
+					j.ganadores.insert(actual);
 				}
 				int tdrp = actual->unused();
 				j.p.insert(actual->cartas[tdrp]);
@@ -398,35 +440,19 @@ void run() {
 			if (j.baraja.size() == 0) {
 				system("cls");
 				cout << "La baraja se ha terminado" << '\n';
-				cout << "Buscando ganador" << '\n';
-				j.jugadores.reset();
-				int max = 0;
-				do {
-					jugador* act = j.jugadores.actual();
-					int total = 0;
-					for (int i = 0; i < act->size(); i++) {
-						total += act->cartas[i].valor;
-						if (act->cartas[i].valor == 1) total += 10;
-					}
-					if (total > max) {
-						max = total;
-						ganador = act;
-					}
-				} while (j.jugadores.actual() != j.jugadores.head->val);
-
-				cout << "El jugador " << ganador->name << " ha ganado" << '\n';
-				cout << "Con: " << max << " puntos" << '\n';
- 
-				return;
+				cout << "Mezclando las cartas del pool" << '\n';
+				j.reshuffle();
+				this_thread::sleep_for(chrono::milliseconds(500));
 			}
 			j.jugadores.next();
 			first = false;
 		} while (j.jugadores.actual() != j.jugadores.head->val);
 	}
-
+	return;
 }
 
 int main() {
+	srand(random_device()());
 	int n;
 	while (true) {
 		run();
@@ -436,6 +462,5 @@ int main() {
 		cin >> n;
 		if (n != 1) break;
 	}
-
 	return 0;
 }
