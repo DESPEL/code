@@ -91,9 +91,9 @@ int main() {
 		jugadores[i].erase(jugadores[i].begin() + p - 1);
 	}
 	system("cls");
-	for (int i = 0; i < jugadores.size(); i++) {
-		int suma = accumulate(begin(jugadores[i]), end(jugadores[i]), 0, [&](int a, pair<int, int> b) {return a + b.first; });
-		if (suma > vmax) vmax = suma, imax = i;
+	for (int i = 0; i < ganadores.size(); i++) {
+		int suma = accumulate(begin(jugadores[ganadores[i]]), end(jugadores[ganadores[i]]), 0, [&](int a, pair<int, int> b) {return a + b.first; });
+		if (suma > vmax) vmax = suma, imax = ganadores[i];
 	}
 	cout << "El jugador " << imax + 1 << " ha ganado" << '\n';
 	cin >> p;

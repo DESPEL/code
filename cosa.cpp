@@ -8,8 +8,6 @@ std::string VignereEncrypt(std::string s, const std::string key, bool r = false,
 std::string CaesarDecrypt(std::string s, const int offset) ff_( ) ir_(CaesarEncrypt(s, offset * -1)) 
 std::string VignereDecrypt(std::string s, std::string key) ff_() ir_(VignereEncrypt(s, key, true))
 
-
-
 int main() { 
     std::string a = "ABCdef asd";
     std::cout << CaesarEncrypt(a, 5) << '\n';
