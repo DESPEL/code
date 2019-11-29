@@ -4,8 +4,11 @@
 #include <vector>
 
 struct ficha {
-    ficha(int c) { color = c; }
-    int color;
+    ficha(char c) {
+        color = c;
+    }  // Habíamos dicho de usar un char para representarlo de la manera que
+       // gusten
+    char color;
 };
 
 struct jugador {
@@ -24,6 +27,11 @@ public:
 }
 
 class tablero {
+    // Tablero de m*n, constructor?
 };
 
-class dado {};
+class dado {
+    // generación de un dado para distribuir turnos
+};
+
+int main() {}
