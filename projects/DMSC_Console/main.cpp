@@ -5,13 +5,16 @@
 #include <cstdlib>
 
 #include "InputEngine.h"
+#include "StringGraphics.h"
+#include "Utils.h"
+#include "GUI.h"
 
 using namespace std;
 
-struct Size {
-	float width;
-	float height;
-};
+//struct Size {
+//	float width;
+//	float height;
+//};
 
 Size getConsoleSize() {
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -20,7 +23,7 @@ Size getConsoleSize() {
 	GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
 	columns = csbi.srWindow.Right - csbi.srWindow.Left + 1;
 	rows = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
-	return { (float)columns, (float)rows };
+	return { columns, rows };
 }
 
 void setPosition(int x, int y){
@@ -186,22 +189,39 @@ public:
 };
 
 int main() {
-	setPosition(0, getConsoleSize().height - 1);
-	cout << "  <- mueve el '#' con WASD" << '\n';
+	Label test("boton de prueba", { 10, 4 }, Label::Align::CENTER, {1,0,0,1});
+	int times = 0;
+	Button testbutton(test, { 10,10 }, [&times]() {
+		Utils::setPosition(24, 12);
+		cout << "boton apretado: " << times << " veces";
+		times++;
+	});
+	testbutton.start();
 
-	InputEngine* input = InputEngine::getInstance();
-
-	function<void()> end = []() {
-		exit(0);
-	};
-	input->addKeyDownCallback(VK_ESCAPE, end, "end program");
 
 
-	MovingSquare sq('#', 10.0f);
-	sq.start(0, getConsoleSize().height - 1);
 
-	setPosition(0, 0);
-	followCursor test('x');
-	test.start();
+	/*vector<string> test = Graphics::makeRect(5, 6);
+	for (string& r : test) {
+		cout << r << '\n';
+	}*/
+
+	//setPosition(0, getConsoleSize().height - 1);
+	//cout << "  <- mueve el '#' con WASD" << '\n';
+
+	//InputEngine* input = InputEngine::getInstance();
+
+	//function<void()> end = []() {
+	//	exit(0);
+	//};
+	//input->addKeyDownCallback(VK_ESCAPE, end, "end program");
+
+
+	//MovingSquare sq('#', 10.0f);
+	//sq.start(0, getConsoleSize().height - 1);
+
+	//setPosition(0, 0);
+	//followCursor test('x');
+	//test.start();
 	this_thread::sleep_for(chrono::hours(8760)); // sleep for a year (avoid ending program)
 }
