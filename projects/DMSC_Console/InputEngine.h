@@ -32,7 +32,7 @@ class InputEngine
 	std::map<WORD, std::map<std::string, std::function<void()>>> keyUpCallbacks;
 	std::map<WORD, std::map<std::string, std::function<void()>>> keyPressCallbacks;
 
-	std::map<WORD, std::map<std::string, std::function<void()>>> mouseEventCallbacks;
+	std::map<std::string, std::function<void()>> mouseMoveCallbacks;
 	std::map<WORD, std::map<std::string, std::function<void()>>> clickCallbacks;
 
 	std::map<std::string, std::function<void()>> resizeCallbacks;
@@ -57,6 +57,9 @@ public:
 
 	void addRightClickCallback(std::function<void()> callback, std::string key);
 	void removeRightClickCallback(std::string key);
+
+	void addMouseMoveCallback(std::function<void()> callback, std::string key);
+	void removeMouseMoveCallback(std::string key);
 
 	void addResizeCallback(std::function<void()> callback, std::string key);
 	void removeResizeCallback(std::string key);

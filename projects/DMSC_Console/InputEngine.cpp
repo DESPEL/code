@@ -144,7 +144,8 @@ void InputEngine::MouseEventProc(MOUSE_EVENT_RECORD mer)
 		// no callback at this moment
 		break;
 	case MOUSE_MOVED:
-		// only update position (:
+		for (pair<const string, function<void()>>& callback : mouseMoveCallbacks)
+			callback.second();
 		mouse.pos = mer.dwMousePosition;
 		break;
 	case MOUSE_WHEELED:
@@ -208,4 +209,12 @@ void InputEngine::addResizeCallback(function<void()> callback, string key) {
 
 void InputEngine::removeResizeCallback(string key) {
 	resizeCallbacks.erase(key);
+}
+
+void InputEngine::addMouseMoveCallback(std::function<void()> callback, std::string key) {
+	mouseMoveCallbacks[key] = callback;
+}
+
+void InputEngine::removeMouseMoveCallback(std::string key) {
+	mouseMoveCallbacks.erase(key);
 }

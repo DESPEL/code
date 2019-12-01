@@ -33,10 +33,10 @@ class MovingSquare {
 	char ch = '*';
 	float px;
 	float py;
-	bool trackingd = false;
-	bool trackingr = false;
-	bool trackingu = false;
-	bool trackingl = false;
+	float vx;
+	float vy;
+	bool tracking = false;
+	bool running = false;
 	Size consoleSize;
 	chrono::time_point<chrono::steady_clock> last;
 public:
@@ -44,6 +44,8 @@ public:
 		speed = s;
 		ch = c;
 		consoleSize = getConsoleSize();
+		vx = s * (consoleSize.width / consoleSize.height);
+		vy = s;
 	}
 
 	void start(int x = 0, int y = 0) {
@@ -54,8 +56,10 @@ public:
 		cout << ch;
 
 		function<void()> movementr = [this]() {
-			if (!trackingr) {
-				trackingr = true;
+			if (running) return;
+			running = true;
+			if (!tracking) {
+				tracking = true;
 				this->last = chrono::high_resolution_clock::now();
 			}
 			else {
@@ -63,15 +67,19 @@ public:
 				cout << " ";
 				auto now = chrono::high_resolution_clock::now();
 				float delta = chrono::duration_cast<chrono::milliseconds>(now - this->last).count() / 1000.0f;
-				this->px += this->speed * delta;
-				if (this->px > this->consoleSize.width) this->px = this->consoleSize.width;
+				this->last = chrono::high_resolution_clock::now();
+				this->px += this->vx * delta;
+				if (this->px > this->consoleSize.width - 1) this->px = this->consoleSize.width - 1;
 				setPosition((int)this->px, (int)this->py);
 				cout << this->ch;
 			}
+			running = false;
 		};
 		function<void()> movementd = [this]() {
-			if (!trackingd) {
-				trackingd = true;
+			if (running) return;
+			running = true;
+			if (!tracking) {
+				tracking = true;
 				this->last = chrono::high_resolution_clock::now();
 			}
 			else {
@@ -79,15 +87,19 @@ public:
 				cout << " ";
 				auto now = chrono::high_resolution_clock::now();
 				float delta = chrono::duration_cast<chrono::milliseconds>(now - this->last).count() / 1000.0f;
-				this->py += this->speed * delta;
-				if (this->py > this->consoleSize.height) this->py = this->consoleSize.height;
+				this->last = chrono::high_resolution_clock::now();
+				this->py += this->vy * delta;
+				if (this->py > this->consoleSize.height - 1) this->py = this->consoleSize.height - 1;
 				setPosition((int)this->px, (int)this->py);
 				cout << this->ch;
 			}
+			running = false;
 		};
 		function<void()> movementl = [this]() {
-			if (!trackingl) {
-				trackingl = true;
+			if (running) return;
+			running = true;
+			if (!tracking) {
+				tracking = true;
 				this->last = chrono::high_resolution_clock::now();
 			}
 			else {
@@ -95,15 +107,19 @@ public:
 				cout << " ";
 				auto now = chrono::high_resolution_clock::now();
 				float delta = chrono::duration_cast<chrono::milliseconds>(now - this->last).count() / 1000.0f;
-				this->px -= this->speed * delta;
+				this->last = chrono::high_resolution_clock::now();
+				this->px -= this->vx * delta;
 				if (this->px < 0) this->px = 0;
 				setPosition((int)this->px, (int)this->py);
 				cout << this->ch;
 			}
+			running = false;
 		};
 		function<void()> movementu = [this]() {
-			if (!trackingu) {
-				trackingu = true;
+			if (running) return;
+			running = true;
+			if (!tracking) {
+				tracking = true;
 				this->last = chrono::high_resolution_clock::now();
 			}
 			else {
@@ -111,39 +127,63 @@ public:
 				cout << " ";
 				auto now = chrono::high_resolution_clock::now();
 				float delta = chrono::duration_cast<chrono::milliseconds>(now - this->last).count() / 1000.0f;
-				this->py -= this->speed * delta;
+				this->last = chrono::high_resolution_clock::now();
+				this->py -= this->vy * delta;
 				if (this->py < 0) this->py = 0;
 				setPosition((int)this->px, (int)this->py);
 				cout << this->ch;
 			}
+			running = false;
 		};
 
-		function<void()> stopr = [this]() {
-			this->trackingr = false;
-		};
-
-		function<void()> stopd = [this]() {
-			this->trackingd = false;
-		};
-		function<void()> stopl = [this]() {
-			this->trackingl = false;
-		};
-		function<void()> stopu = [this]() {
-			this->trackingu = false;
+		function<void()> stop = [this]() {
+			this->tracking = false;
 		};
 		InputEngine* input = InputEngine::getInstance();
 
 		input->addKeyDownCallback('S', movementd, "movdown");
-		input->addKeyUpCallback('S', stopd, "movdown");
+		input->addKeyUpCallback('S', stop, "movdown");
 		input->addKeyDownCallback('W', movementu, "movup");
-		input->addKeyUpCallback('W', stopu, "movup");
+		input->addKeyUpCallback('W', stop, "movup");
 		input->addKeyDownCallback('D', movementr, "movright");
-		input->addKeyUpCallback('D', stopr, "movright");
+		input->addKeyUpCallback('D', stop, "movright");
 		input->addKeyDownCallback('A', movementl, "movleft");
-		input->addKeyUpCallback('A', stopl, "movleft");
+		input->addKeyUpCallback('A', stop, "movleft");
 	}
 };
 
+class followCursor {
+	COORD position;
+	char ch;
+	bool running = false;
+public:
+	followCursor(char c = 'x'){
+		ch = c;
+	}
+
+	void start() {
+		function<void()> setpos = [this]() {
+			if (running)
+				return;
+			running = true;
+			setPosition(position.X, position.Y + 2);
+			cout << "                   ";
+			setPosition(position.X, position.Y + 1);
+			cout << " ";
+			setPosition(position.X, position.Y + 0);
+			cout << " ";
+			position = InputEngine::getInstance()->mouse.pos;
+			setPosition(position.X, position.Y + 2);
+			cout << "| El mouse esta ahi";
+			setPosition(position.X, position.Y + 1);
+			cout << "^";
+			setPosition(position.X, position.Y + 0);
+			cout << "x";
+			running = false;
+		};
+		InputEngine::getInstance()->addMouseMoveCallback(setpos, "setposmouse");
+	}
+};
 
 int main() {
 	cout << "  <- mueve el '#' con WASD" << '\n';
@@ -156,7 +196,10 @@ int main() {
 	input->addKeyDownCallback(VK_ESCAPE, end, "end program");
 
 
-	MovingSquare sq;
+	MovingSquare sq('#', 10.0f);
 	sq.start();
+
+	followCursor test('x');
+	test.start();
 	this_thread::sleep_for(chrono::hours(8760)); // sleep for a year (avoid ending program)
 }
