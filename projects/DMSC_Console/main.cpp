@@ -186,6 +186,7 @@ public:
 };
 
 int main() {
+	setPosition(0, getConsoleSize().height - 1);
 	cout << "  <- mueve el '#' con WASD" << '\n';
 
 	InputEngine* input = InputEngine::getInstance();
@@ -197,8 +198,9 @@ int main() {
 
 
 	MovingSquare sq('#', 10.0f);
-	sq.start();
+	sq.start(0, getConsoleSize().height - 1);
 
+	setPosition(0, 0);
 	followCursor test('x');
 	test.start();
 	this_thread::sleep_for(chrono::hours(8760)); // sleep for a year (avoid ending program)
