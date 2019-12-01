@@ -9,11 +9,12 @@
 #include <functional>
 #include <thread>
 
+struct Mouse {
+	COORD pos;
+};
+
 class InputEngine
 {
-	struct Mouse {
-		COORD pos;
-	};
 
 	static InputEngine* instance;
 	HANDLE hStdin;
