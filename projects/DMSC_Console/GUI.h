@@ -10,6 +10,16 @@
 #include "Utils.h"
 #include "StringGraphics.h"
 
+
+class GuiElement {
+
+
+	std::function<void()> onMouseEnter;
+	std::function<void()> onMouseLeave;
+	std::function<void()> onClick;
+	std::function<void()> onRightClick;
+};
+
 struct Size {
 	int width;
 	int height;
