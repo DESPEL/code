@@ -54,7 +54,7 @@ print(s.cookies)
 
 #print("csrf token: ", csrf)
 
-r = login(s, csrf, "T032025", "")
+r = login(s, csrf, "username", "password")
 
 #print("headers: ")
 #print(r.headers)
